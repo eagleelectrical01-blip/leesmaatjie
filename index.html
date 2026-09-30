@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#2f7d4f">
+<meta name="referrer" content="no-referrer">
 <title>Leesmaatjie</title>
 <link rel="manifest" id="mf">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -31,6 +32,15 @@ h1{font-size:34px;margin:8px 0}h2{font-size:24px;margin:16px 0 8px}
 .go{background:var(--green);color:#fff;font-size:30px;font-weight:700;border-radius:24px;padding:20px;box-shadow:0 5px 0 #237a45;width:100%}
 .go:active{transform:translateY(3px);box-shadow:0 2px 0 #237a45}
 .gear{margin-top:14px;align-self:center;background:none;font-size:14px;color:var(--soft);padding:10px}
+/* menu */
+.lvlbtn{background:var(--card);border-radius:999px;padding:8px 14px;font-size:17px;color:var(--ink);box-shadow:0 2px 0 var(--line);flex:1;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.menu{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;z-index:50}.menu.on{display:block}
+.mpanel{position:absolute;left:0;top:0;bottom:0;width:min(90vw,400px);background:var(--bg);padding:14px 16px;overflow-y:auto;animation:slide .25s ease}
+.lv{display:flex;gap:12px;align-items:center;width:100%;background:var(--card);border-radius:18px;padding:12px;margin:8px 0;text-align:left;box-shadow:0 2px 0 var(--line);border:3px solid transparent}
+.lv.cur{border-color:var(--green)}
+.lv .num{flex:0 0 46px;height:46px;border-radius:50%;background:var(--sun);font-size:22px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.lv .nm{font-size:20px;font-weight:700;display:block}.lv .gr{font-size:14px;color:var(--soft);display:block}.lv .ex{font-size:15px;color:var(--blue);display:block}
+@keyframes slide{from{transform:translateX(-100%)}to{transform:none}}
 /* reading */
 .buddy{display:flex;align-items:center;gap:10px;margin:4px 0 10px}
 .owl{font-size:56px}
@@ -39,7 +49,7 @@ h1{font-size:34px;margin:8px 0}h2{font-size:24px;margin:16px 0 8px}
 #storyTitle{text-align:center;font-weight:700;color:var(--soft);font-size:18px;min-height:4px}
 .card{background:var(--card);border-radius:28px;padding:28px 16px;min-height:180px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 0 var(--line)}
 #words{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 16px;line-height:1.3}
-#words.xl{font-size:clamp(56px,18vw,96px)}#words.lg{font-size:clamp(40px,11vw,64px)}#words.md{font-size:clamp(30px,8vw,46px)}
+#words.xl{font-size:clamp(56px,18vw,96px)}#words.lg{font-size:clamp(40px,11vw,64px)}#words.md{font-size:clamp(30px,8vw,46px)}#words.sm{font-size:clamp(24px,6.5vw,36px)}
 .w{border-radius:14px;padding:0 8px;transition:background .3s,color .3s}
 .w.ok{background:var(--green2);color:var(--green)}
 .w.help{background:var(--blue2);color:var(--blue)}
@@ -94,11 +104,13 @@ textarea{width:100%;min-height:120px;font-family:inherit;font-size:17px;border-r
 <body>
 
 <section id="home" class="screen on">
-  <div class="bar"><div class="pill" id="hStars">⭐ 0</div><div class="lvl" id="hLevel"></div></div>
+  <div class="bar"><button class="ib" id="menuBtn" aria-label="Kies vlak">☰</button><button class="lvlbtn" id="hLevel"></button><div class="pill" id="hStars">⭐ 0</div></div>
   <div id="farm"></div>
   <button class="go" id="goRead">📖 Kom lees!</button>
   <button class="gear" id="gear">⚙️ Grootmense: hou 2 sekondes</button>
 </section>
+
+<div id="menu" class="menu"><div class="mpanel"><div class="bar"><h2 style="margin:0">Kies 'n vlak</h2><button class="ib" id="mClose">✕</button></div><div id="mList"></div></div></div>
 
 <section id="read" class="screen">
   <div class="bar"><button class="ib" id="rHome">🏠</button><div id="dots"></div><div class="ib ghost"></div></div>
@@ -150,18 +162,30 @@ const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()
 /* ---------- content ---------- */
 const LEVELS={
   1:{name:'Klein woordjies',grade:'Begin',type:'items',items:['ma','pa','ek','sy','hy','is','en','kat','son','bal','pot','man','mat','pen','vis','bed','sak','dak','hok','bok','kop','sop','pap','rot','net']},
-  2:{name:'Groter woorde',grade:'Graad R–1',type:'items',items:['boom','maan','huis','hond','koek','voet','deur','hoed','melk','brood','vark','koei','perd','eend','bus','fiets','water','appel','blom','stoel','skoen','kar','reën','vuur']},
-  3:{name:'Twee woordjies',grade:'Graad 1',type:'items',items:['die kat','my ma','my pa','\'n hond','die son','die bal','\'n vis','die boom','my bed','die huis','rooi bal','groot hond','klein kat','warm sop','my voet']},
-  4:{name:'Kort sinne',grade:'Graad 1',type:'items',items:['Die kat sit.','Ek sien die son.','Pa het \'n bal.','Die hond is groot.','Ma eet brood.','Die vis swem.','Ek is bly.','Die koei sê moe.','Die boom is hoog.','Ek hou van my hond.','Die bus is geel.','Ek drink melk.']},
-  5:{name:'Langer sinne',grade:'Graad 2',type:'items',items:['Die klein kat speel met die bal.','Ek en my ma gaan winkel toe.','Die voël sit bo in die boom.','Pa ry met die rooi kar.','Die son skyn en dit is warm.','My hond hardloop baie vinnig.','Ons eet koek by ouma.','Die eend swem in die dam.','Ek trek my skoene aan.','Die perd eet groen gras.']},
-  6:{name:'Storietjies',grade:'Graad 2–3',type:'story',stories:[
+  2:{name:'Nog klein woordjies',grade:'Begin',type:'items',items:['vet','lip','mis','sit','rok','bus','kom','gat','nat','lag','pop','tas','wol','hen','kan','lap','mes','rit','tol','sap','wit','bak','sin','dik','hol']},
+  3:{name:'Lang klanke',grade:'Graad R',type:'items',items:['boom','maan','huis','voet','deur','hoed','koek','koei','eend','reën','vuur','muis','been','oog','oor','neus','boot','seun','bees','kaas','hout','pyp','ys','uil','wiel']},
+  4:{name:'Saamklanke',grade:'Graad 1',type:'items',items:['brood','blom','stoel','skoen','vlag','trein','klok','slang','spin','fiets','sterk','kraai','vlieg','trap','groen','blou','swem','stap','glas','prent','hond','melk','perd','vark','kruis']},
+  5:{name:'Twee woordjies',grade:'Graad 1',type:'items',items:['die kat','my ma','my pa','\'n hond','die son','die bal','\'n vis','die boom','my bed','die huis','rooi bal','groot hond','klein kat','warm sop','my voet','blou lug','groen gras','koue ys']},
+  6:{name:'Kort sinne',grade:'Graad 1',type:'items',items:['Die kat sit.','Ek sien die son.','Pa het \'n bal.','Die hond is groot.','Ma eet brood.','Die vis swem.','Ek is bly.','Die koei sê moe.','Die boom is hoog.','Ek hou van my hond.','Die bus is geel.','Ek drink melk.']},
+  7:{name:'Sinne',grade:'Graad 1–2',type:'items',items:['Die hond speel in die tuin.','Ek eet \'n rooi appel.','Ma bak vandag \'n koek.','Die kinders speel buite.','Oupa lees die koerant.','Die kat slaap op my bed.','Ek kan baie vinnig hardloop.','Die voël sing in die boom.','Ons gaan see toe.','My pop het \'n pienk rok.','Die trein ry baie ver.','Ek was my hande.']},
+  8:{name:'Langer woorde',grade:'Graad 2',type:'items',items:['tafel','water','appel','lekker','winter','somer','venster','hamer','kombuis','bakker','winkel','sussie','boetie','maatjie','juffrou','potlood','skoolsak','voetbal','sandput','reënjas','hondjie','katjie','borsel','blommetjie','verf']},
+  9:{name:'Langer sinne',grade:'Graad 2',type:'items',items:['Die klein kat speel met die bal.','Ek en my ma gaan winkel toe.','Die voël sit bo in die boom.','Pa ry met die rooi kar.','Die son skyn en dit is warm.','My hond hardloop baie vinnig.','Ons eet koek by ouma.','Die eend swem in die dam.','Ek trek my skoene aan.','Die perd eet groen gras.','Juffrou lees vir ons \'n mooi storie.','My boetie speel voetbal met sy maats.']},
+  10:{name:'Storietjies',grade:'Graad 2–3',type:'story',stories:[
     {t:'Kat en Hond',s:['Kat sit op die mat.','Hond kom by die deur in.','Hond sê woef.','Kat spring op die bed.','Nou is hulle maats.']},
     {t:'Die rooi bal',s:['Sara het \'n rooi bal.','Sy gooi die bal hoog.','Die bal val in die dam.','Die eend bring die bal terug.','Sara lag lekker.']},
     {t:'Op die plaas',s:['Oupa het \'n groot plaas.','Daar is koeie en varke.','Die hoenders lê eiers.','Ek help oupa elke dag.','Ek hou baie van die plaas.']},
     {t:'Reën',s:['Die lug is grys.','Toe begin dit reën.','Ek trek my stewels aan.','Ek spring in die water.','Plons, plons, plons!']}
+  ]},
+  11:{name:'Moeilike woorde',grade:'Graad 3',type:'items',items:['skoenlapper','verjaarsdag','sjokolade','rekenaar','olifant','kameelperd','vliegtuig','sonneblom','sambreel','vuurhoutjie','aartappel','telefoon','horlosie','helikopter','seekoei','renoster','krokodil','spinnekop','waatlemoen','ontbyt','springmielies','kersboom','skilpad','verkeerslig']},
+  12:{name:'Groot stories',grade:'Graad 3',type:'story',stories:[
+    {t:'Die verjaarsdag',s:['Vandag is dit Mia se verjaarsdag.','Sy word agt jaar oud.','Ma het \'n groot sjokoladekoek gebak.','Al haar maats kom kuier by die huis.','Hulle speel buite in die son en lag lekker.','Oupa gee vir haar \'n rooi fiets.','Dit is die beste dag van haar lewe!']},
+    {t:'Die olifant en die muis',s:['In die bos woon \'n groot grys olifant.','Een oggend trap hy amper op \'n klein muis.','Asseblief, moenie my seermaak nie! sê die muis.','Die olifant lig sy voet versigtig op.','Van daardie dag af is hulle goeie vriende.']},
+    {t:'By die see',s:['Ons ry in die vakansie see toe.','Die water is koud, maar ek swem tog.','Ek bou \'n sandkasteel met my boetie.','\'n Groot golf spoel ons kasteel weg.','Ons lag en begin sommer weer van voor af.']},
+    {t:'Die verlore hondjie',s:['Ons hondjie Wolf het weggehardloop.','Ons soek oral in die straat na hom.','Pa roep sy naam hard en fluit.','Toe hoor ons \'n klein blaffie by die buurvrou.','Wolf sit onder haar tafel en eet \'n been.']}
   ]}
 };
-const MAXLEVEL=6;
+const LVKEYS=Object.keys(LEVELS).map(Number);
+const MAXLEVEL=LVKEYS.length;
 
 const FARM=[
  {e:'☀️',n:'son',x:84,y:10},{e:'🏡',n:'huis',x:20,y:40},{e:'🌳',n:'boom',x:46,y:33},{e:'🐕',n:'hond',x:30,y:62},
@@ -180,9 +204,10 @@ const RETRY=['Amper! Probeer weer.','Kom ons probeer weer, stadig.','Jy kan dit 
 
 /* ---------- state ---------- */
 const LS='leesmaatjie_v1';
-const def=()=>({level:1,stars:0,sessions:0,hist:{},words:{},showHeard:true,sessLen:5,custom:[],storyIdx:0});
+const def=()=>({level:1,stars:0,sessions:0,hist:{},words:{},showHeard:true,sessLen:5,custom:[],storyIdx:{}});
 let S=(()=>{try{return Object.assign(def(),JSON.parse(localStorage.getItem(LS)||'{}'))}catch(e){return def()}})();
 const save=()=>{try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}};
+if(S.v!==2){const map={1:1,2:3,3:5,4:6,5:9,6:10};if(S.level>0)S.level=map[S.level]||1;S.hist={};S.storyIdx={};S.v=2;save()}
 
 /* ---------- text matching ---------- */
 const DIG={'0':'nul','1':'een','2':'twee','3':'drie','4':'vier','5':'vyf','6':'ses','7':'sewe','8':'agt','9':'nege','10':'tien'};
@@ -214,10 +239,21 @@ function loadVoices(){try{const v=speechSynthesis.getVoices();afVoice=v.find(x=>
 if('speechSynthesis' in window){loadVoices();speechSynthesis.onvoiceschanged=loadVoices}
 
 let curAudio=null;
+function onlineVoice(text){return new Promise(res=>{
+  if(!navigator.onLine)return res(false);
+  try{const a=new Audio('https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=af&ttsspeed=0.7&q='+encodeURIComponent(text));
+    curAudio=a;let done=false;const fin=v=>{if(!done){done=true;res(v)}};
+    a.onerror=()=>fin(false);a.play().then(()=>fin(true)).catch(()=>fin(false));setTimeout(()=>fin(false),4000);
+  }catch(e){res(false)}})}
+let onlineOK=true;
 async function speak(text){
   const k=norm(text);
-  if(recKeys.has(k)){const b=await DB.get(k);if(b){if(curAudio)curAudio.pause();curAudio=new Audio(URL.createObjectURL(b));curAudio.play().catch(()=>{});return true}}
-  if(afVoice){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.voice=afVoice;u.lang=afVoice.lang;u.rate=.8;speechSynthesis.speak(u);return true}
+  if(curAudio){try{curAudio.pause()}catch(e){}}
+  try{speechSynthesis.cancel()}catch(e){}
+  if(recKeys.has(k)){const b=await DB.get(k);if(b){curAudio=new Audio(URL.createObjectURL(b));curAudio.play().catch(()=>{});return true}}
+  if(afVoice){const u=new SpeechSynthesisUtterance(text);u.voice=afVoice;u.lang=afVoice.lang;u.rate=.75;speechSynthesis.speak(u);return true}
+  if(onlineOK){if(await onlineVoice(text))return true;onlineOK=navigator.onLine?false:true}
+  if('speechSynthesis' in window){const u=new SpeechSynthesisUtterance(text);u.lang='af-ZA';u.rate=.75;speechSynthesis.speak(u);return true}
   return false;
 }
 let AC=null;
@@ -237,7 +273,7 @@ function show(id){
 function unlockedCount(){let c=0;for(let k=1;k<=FARM.length;k++)if(S.stars>=needStars(k))c=k;return c}
 function renderHome(newFrom){
   $('hStars').textContent='⭐ '+S.stars;
-  const L=curLevel();$('hLevel').textContent='Vlak '+(S.level||'★')+': '+L.name;
+  const L=curLevel();$('hLevel').textContent=(S.level?'Vlak '+S.level:'★')+': '+L.name+' ▾';
   const f=$('farm');f.innerHTML='';
   const n=unlockedCount();
   if(!n)f.innerHTML='<div id="farmEmpty">Lees om jou plaas te bou! 🌱</div>';
@@ -258,7 +294,7 @@ function pickItems(list,n){
 }
 function startSession(){
   const L=curLevel();let items,title='';
-  if(L.type==='story'){const st=L.stories[S.storyIdx%L.stories.length];items=st.s.slice();title='📚 '+st.t}
+  if(L.type==='story'){const st=L.stories[(S.storyIdx[S.level]||0)%L.stories.length];items=st.s.slice();title='📚 '+st.t}
   else items=pickItems(L.items,S.sessLen);
   sess={items,i:0,title,firstTry:0,helped:0,story:L.type==='story'};
   show('read');$('storyTitle').textContent=title;renderItem();
@@ -269,7 +305,7 @@ function renderItem(){
   const parts=text.split(/\s+/).filter(Boolean);
   cur={text,parts,targets:parts.map(p=>toks(p).join(' ')),matched:[],attempts:0,done:false,lock:false};
   cur.matched=cur.targets.map(t=>t===''||t==="'n");
-  const w=$('words');w.className=parts.length===1?'xl':parts.length<=3?'lg':'md';w.innerHTML='';
+  const w=$('words');w.className=parts.length===1?'xl':parts.length<=3?'lg':parts.length<=7?'md':'sm';w.innerHTML='';
   parts.forEach((p,i)=>{const s=document.createElement('span');s.className='w'+(cur.matched[i]?' ok':'');s.textContent=p;s.onclick=()=>tapWord(i);w.appendChild(s)});
   $('dots').innerHTML=sess.items.map((_,i)=>'<div class="dot'+(i<sess.i?' done':'')+'"></div>').join('');
   $('heard').textContent='';
@@ -325,7 +361,7 @@ function endSession(){
   const good=sess.firstTry>=Math.ceil(sess.items.length*.8);
   const before=unlockedCount();
   S.stars+=good?2:1;S.sessions++;
-  if(sess.story)S.storyIdx++;
+  if(sess.story)S.storyIdx[S.level]=(S.storyIdx[S.level]||0)+1;
   let up='';
   if(S.level>=1&&S.level<MAXLEVEL){const h=S.hist[S.level]||[];if(h.length>=15&&h.reduce((a,b)=>a+b,0)/h.length>=.8){S.level++;up=' Jy is nou op Vlak '+S.level+'! 🎉'}}
   save();
@@ -459,7 +495,7 @@ function levelWords(){
   return{items,words:[...words].filter(w=>!items.map(norm).includes(norm(w)))};
 }
 function renderParent(){
-  const lv=[1,2,3,4,5,6].map(n=>'<button class="chip'+(S.level===n?' sel':'')+'" data-lv="'+n+'">'+n+'. '+LEVELS[n].name+' <small>('+LEVELS[n].grade+')</small></button>').join('')+
+  const lv=LVKEYS.map(n=>'<button class="chip'+(S.level===n?' sel':'')+'" data-lv="'+n+'">'+n+'. '+LEVELS[n].name+' <small>('+LEVELS[n].grade+')</small></button>').join('')+
     (S.custom.length?'<button class="chip'+(S.level===0?' sel':'')+'" data-lv="0">★ Eie lys</button>':'');
   const pct=n=>{const h=S.hist[n]||[];return h.length?Math.round(h.reduce((a,b)=>a+b,0)/h.length*100)+'% ('+h.length+')':'–'};
   const hard=Object.entries(S.words).filter(([,v])=>v.miss>0).sort((a,b)=>b[1].miss-a[1].miss).slice(0,10).map(([k,v])=>'<span class="chip">'+k+' ✗'+v.miss+' ✓'+v.ok+'</span>').join('')||'<span class="lvl">Nog niks</span>';
@@ -470,10 +506,10 @@ function renderParent(){
    '<div class="box row"><b>Items per sessie:</b>'+[3,5,8].map(n=>'<button class="chip'+(S.sessLen===n?' sel':'')+'" data-len="'+n+'">'+n+'</button>').join('')+
      '<label style="margin-left:auto"><input type="checkbox" id="pHeard" '+(S.showHeard?'checked':'')+'> Wys wat gehoor is</label></div>'+
    '<div class="box"><b>Vordering</b><div class="lvl">Sessies: '+S.sessions+' · Sterre: '+S.stars+'</div>'+
-     [1,2,3,4,5,6].map(n=>'<div class="rl"><b>Vlak '+n+'</b><span>'+pct(n)+'</span></div>').join('')+
+     LVKEYS.map(n=>'<div class="rl"><b>Vlak '+n+' '+LEVELS[n].name+'</b><span>'+pct(n)+'</span></div>').join('')+
      '<div style="margin-top:8px"><b>Moeilikste woorde</b></div><div class="row" style="margin-top:6px">'+hard+'</div></div>'+
    '<div class="box"><b>Toets die luister</b><div class="lvl">Laat haar \'n woord sê en kyk wat die foon hoor.</div><div class="row" style="margin-top:8px"><button class="chip" id="pTest">🎤 Toets</button></div><div id="pTestOut" style="margin-top:8px"></div></div>'+
-   '<div class="box"><b>Stem</b><div class="'+(afVoice?'':'warn')+'">'+(afVoice?'Afrikaanse rekenaarstem gevind ✓ ('+afVoice.name+'). Opnames word eerste gebruik.':'Geen Afrikaanse stem op hierdie foon nie. Neem die woorde hieronder op met jou eie stem.')+'</div>'+
+   '<div class="box"><b>Stem</b><div>'+(afVoice?'Afrikaanse foonstem gevind ✓ ('+afVoice.name+').':'Geen Afrikaanse foonstem nie – die app gebruik Google se aanlyn Afrikaanse stem (internet nodig).')+' Jou eie opnames word altyd eerste gebruik.</div><div class="row" style="margin-top:8px"><button class="chip" id="pVoice">🔊 Toets stem</button></div>'+
      '<div style="margin-top:8px"><b>Opnames vir vlak '+(S.level||'★')+'</b></div>'+items.map(recRow).join('')+
      (words.length?'<div style="margin-top:10px"><b>Losse woorde</b></div>'+words.map(recRow).join(''):'')+'</div>'+
    '<div class="box"><b>Eie woorde of sinne</b><div class="lvl">Een per lyn, bv. haar skool se spelwoorde. Word "★ Eie lys" by vlakke.</div><textarea id="pCustom">'+S.custom.join('\n')+'</textarea><div class="row"><button class="chip sel" id="pSaveCustom">Stoor lys</button></div></div>'+
@@ -497,6 +533,7 @@ $('pBody').addEventListener('click',async e=>{
     }catch(err){alert('Kon nie die mikrofoon oopmaak nie.')}
     return;
   }
+  if(t.id==='pVoice'){onlineOK=true;speak('Mooi so, jy lees pragtig!');return}
   if(t.id==='pTest'){
     const out=$('pTestOut');
     if(!SR){out.innerHTML='<span class="warn">Spraakherkenning is nie op hierdie blaaier beskikbaar nie. Gebruik Google Chrome.</span>';return}
@@ -514,6 +551,16 @@ $('pBody').addEventListener('change',e=>{if(e.target.id==='pHeard'){S.showHeard=
 
 /* ---------- wiring ---------- */
 $('goRead').onclick=startSession;
+function levelExample(L){return L.type==='story'?L.stories.map(s=>s.t).slice(0,2).join(', ')+'…':L.items.slice(0,3).join(' · ')}
+function openMenu(){
+  const keys=LVKEYS.slice();if(S.custom.length)keys.push(0);
+  $('mList').innerHTML=keys.map(n=>{const L=n?LEVELS[n]:{name:'Eie lys',grade:'Grootmens se woorde',type:'items',items:S.custom};
+    return '<button class="lv'+(S.level===n?' cur':'')+'" data-mlv="'+n+'"><span class="num">'+(n||'★')+'</span><span><span class="nm">'+L.name+'</span><span class="gr">'+L.grade+'</span><span class="ex">'+levelExample(L)+'</span></span></button>'}).join('');
+  $('menu').classList.add('on');
+}
+function closeMenu(){$('menu').classList.remove('on')}
+$('menuBtn').onclick=openMenu;$('hLevel').onclick=openMenu;$('mClose').onclick=closeMenu;
+$('menu').onclick=e=>{if(e.target.id==='menu'){closeMenu();return}const b=e.target.closest('[data-mlv]');if(!b)return;S.level=+b.dataset.mlv;save();closeMenu();renderHome();speak(curLevel().name)};
 $('rHome').onclick=()=>{show('home');renderHome()};
 $('mic').onclick=startListening;
 $('hearBtn').onclick=async()=>{stopListening();if(!(await speak(cur.text)))say('Vra \'n grootmens om dit vir jou te lees.')};
