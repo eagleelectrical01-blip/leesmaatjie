@@ -1,0 +1,17 @@
+{
+  "name": "Leesmaatjie",
+  "short_name": "Leesmaatjie",
+  "description": "Leer lees in Afrikaans",
+  "lang": "af",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fdf7ec",
+  "theme_color": "#2f9e5b",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

@@ -3,10 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#2f7d4f">
+<meta name="theme-color" content="#2f9e5b">
 <meta name="referrer" content="no-referrer">
 <title>Leesmaatjie</title>
-<link rel="manifest" id="mf">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Leesmaatjie">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&display=swap" rel="stylesheet">
 <style>
@@ -156,12 +161,6 @@ const $=id=>document.getElementById(id);
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 
-/* ---------- manifest ---------- */
-(function(){
-  const icon="data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="#2f9e5b"/><text x="50" y="68" font-size="60" text-anchor="middle">🦉</text></svg>');
-  const m={name:'Leesmaatjie',short_name:'Leesmaatjie',start_url:location.href.split('#')[0],display:'standalone',background_color:'#fdf7ec',theme_color:'#2f7d4f',icons:[{src:icon,sizes:'any',type:'image/svg+xml'}]};
-  $('mf').href='data:application/manifest+json,'+encodeURIComponent(JSON.stringify(m));
-})();
 
 /* ---------- content ---------- */
 const LEVELS={
@@ -526,6 +525,7 @@ function renderParent(){
      '<div style="margin-top:8px"><b>Opnames vir vlak '+(S.level||'★')+'</b></div>'+items.map(recRow).join('')+
      (words.length?'<div style="margin-top:10px"><b>Losse woorde</b></div>'+words.map(recRow).join(''):'')+'</div>'+
    '<div class="box"><b>Eie woorde of sinne</b><div class="lvl">Een per lyn, bv. haar skool se spelwoorde. Word "★ Eie lys" by vlakke.</div><textarea id="pCustom">'+S.custom.join('\n')+'</textarea><div class="row"><button class="chip sel" id="pSaveCustom">Stoor lys</button></div></div>'+
+   '<div class="box"><b>Installeer op die foon</b><div class="lvl" id="pInstMsg">'+installMsg()+'</div>'+(deferredInstall?'<div class="row" style="margin-top:8px"><button class="chip sel" id="pInstall">📲 Installeer Leesmaatjie</button></div>':'')+'</div>'+
    '<div class="box"><b>Gee die app vir haar</b><div class="lvl">Vee al jou toetse uit: sterre, plaas, speletjies, vordering op alle vlakke en moeilike woorde. Jou stemopnames en eie lys bly.</div><div class="row" style="margin-top:8px"><button class="chip warn" id="pReset">🧹 Vee alle toetse uit</button></div></div>';
 }
 $('pBody').addEventListener('click',async e=>{
@@ -546,6 +546,7 @@ $('pBody').addEventListener('click',async e=>{
     }catch(err){alert('Kon nie die mikrofoon oopmaak nie.')}
     return;
   }
+  if(t.id==='pInstall'&&deferredInstall){deferredInstall.prompt();const c=await deferredInstall.userChoice;deferredInstall=null;renderParent();return}
   if(t.id==='pVoice'){onlineOK=true;speak('Mooi so, jy lees pragtig!');return}
   if(t.id==='pTest'){
     const out=$('pTestOut');
@@ -587,6 +588,17 @@ $('pHome').onclick=()=>{show('home');renderHome()};
   g.addEventListener('pointerdown',start);['pointerup','pointerleave','pointercancel'].forEach(ev=>g.addEventListener(ev,cancel));
   g.addEventListener('contextmenu',e=>e.preventDefault());
 })();
+let deferredInstall=null;
+const isInstalled=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+function installMsg(){
+  if(isInstalled())return 'Leesmaatjie is geïnstalleer ✓';
+  if(/iphone|ipad|ipod/i.test(navigator.userAgent))return 'Op iPhone: maak oop in Safari, druk Deel (vierkant met pyl) → "Add to Home Screen".';
+  if(deferredInstall)return 'Druk die knoppie om die ikoon op die foon se tuisskerm te sit.';
+  return 'In Chrome: druk ⋮ bo regs → "Add to Home screen" of "Install app".';
+}
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstall=e;if($('parent').classList.contains('on'))renderParent()});
+addEventListener('appinstalled',()=>{deferredInstall=null;if($('parent').classList.contains('on'))renderParent()});
+if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 renderHome();
 </script>
 </body>
