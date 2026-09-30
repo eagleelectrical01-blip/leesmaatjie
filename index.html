@@ -524,7 +524,7 @@ function renderParent(){
    '<div class="box"><b>Stem</b><div>'+(afVoice?'Afrikaanse foonstem gevind ✓ ('+afVoice.name+').':'Die app gebruik sy eie ingeboude Afrikaanse stem (werk sonder internet).')+' Jou eie opnames word altyd eerste gebruik.</div><div class="row" style="margin-top:8px"><button class="chip" id="pVoice">🔊 Toets stem</button></div>'+
      '<div style="margin-top:8px"><b>Opnames vir vlak '+(S.level||'★')+'</b></div>'+items.map(recRow).join('')+
      (words.length?'<div style="margin-top:10px"><b>Losse woorde</b></div>'+words.map(recRow).join(''):'')+'</div>'+
-   '<div class="box"><b>Eie woorde of sinne</b><div class="lvl">Een per lyn, bv. haar skool se spelwoorde. Word "★ Eie lys" by vlakke.</div><textarea id="pCustom">'+S.custom.join('\n')+'</textarea><div class="row"><button class="chip sel" id="pSaveCustom">Stoor lys</button></div></div>'+
+   '<div class="box"><b>Eie woorde of sinne</b><div class="lvl">Een per lyn, bv. haar skool se spelwoorde. Word "★ Eie lys" by vlakke.</div><textarea id="pCustom">'+S.custom.join('\n')+'</textarea><div class="row"><button class="chip sel" id="pSaveCustom">💾 Stoor lys</button>'+(S.custom.length?'<button class="chip" id="pClearCustom">🗑 Vee lys uit</button>':'')+'</div><div id="pCustomMsg" style="margin-top:8px;font-weight:700;color:var(--green)">'+(S.custom.length?(S.level===0?'✓ Sy oefen nou jou eie lys ('+S.custom.length+' items). Kies \'n ander vlak met ☰ op die tuisblad.':'Jou lys het '+S.custom.length+' items. Kies ★ Eie lys bo by Vlak (of met ☰) om dit te oefen.'):'')+'</div></div>'+
    '<div class="box"><b>Installeer op die foon</b><div class="lvl" id="pInstMsg">'+installMsg()+'</div>'+(deferredInstall?'<div class="row" style="margin-top:8px"><button class="chip sel" id="pInstall">📲 Installeer Leesmaatjie</button></div>':'')+'</div>'+
    '<div class="box"><b>Gee die app vir haar</b><div class="lvl">Vee al jou toetse uit: sterre, plaas, speletjies, vordering op alle vlakke en moeilike woorde. Jou stemopnames en eie lys bly.</div><div class="row" style="margin-top:8px"><button class="chip warn" id="pReset">🧹 Vee alle toetse uit</button></div></div>';
 }
@@ -558,7 +558,8 @@ $('pBody').addEventListener('click',async e=>{
     try{r.start()}catch(err){}
     return;
   }
-  if(t.id==='pSaveCustom'){S.custom=$('pCustom').value.split('\n').map(x=>x.trim()).filter(Boolean);if(!S.custom.length&&S.level===0)S.level=1;save();renderParent();return}
+  if(t.id==='pSaveCustom'){S.custom=$('pCustom').value.split('\n').map(x=>x.trim()).filter(Boolean);S.level=S.custom.length?0:(S.level===0?1:S.level);save();renderParent();const m=$('pCustomMsg');if(m){m.textContent=S.custom.length?'✓ Gestoor! Sy oefen nou jou eie lys ('+S.custom.length+' items). Druk 🏠 en dan Kom lees!':'Lys is leeg.';m.scrollIntoView({behavior:'smooth',block:'center'})}return}
+  if(t.id==='pClearCustom'){if(confirm('Vee jou eie lys uit?')){S.custom=[];if(S.level===0)S.level=1;save();renderParent()}return}
   if(t.id==='pReset'){if(confirm('Vee ALLE toetse uit? Sterre, plaas, speletjies en vordering op alle vlakke begin weer by nul. Jou opnames en eie lys bly.')){const keep={custom:S.custom,sessLen:S.sessLen,showHeard:S.showHeard,v:2};S=Object.assign(def(),keep);save();show('home');renderHome();alert('Klaar! Die app is skoon en begin by Vlak 1.')}return}
 });
 $('pBody').addEventListener('change',e=>{if(e.target.id==='pHeard'){S.showHeard=e.target.checked;save()}});
